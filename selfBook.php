@@ -138,7 +138,7 @@
 			echo $response;
 		}
 
-		public function setUserAnswer($userID, $key, $input, $from)
+		public function setUserAnswer($userID, $key, $input, $from, $isEcho)
 		{
 			$query; 
 			$response;
@@ -176,7 +176,12 @@
 					$response = "fail";
 				}
 			}
-			echo $response;
+			if($isEcho == true)
+			{
+				echo $response;
+			}else{
+				return $response;
+			}
 
 		}
 
@@ -332,7 +337,7 @@
 			while($row = mysqli_fetch_array($res))
 			{
 				$status = 1;
-				if(empty($row[4])){
+				if(empty($row[5])){
 					$status = 0;//델리게이트 엔서가 있나 먼저 체크 
 				}else{
 					$getDelegateChildren = "SELECT D.ID AS detailCode, E.answer AS detailAnswer
@@ -345,9 +350,11 @@
 
 					while($answers = mysqli_fetch_array($exe))
 					{
+						//echo $answers[1]. " ";
 						//echo $answers[0]."A" .$answers[1]."A".$answers[2]."A".$answers[3]."\n";
 						if(!empty($answers[0]) && empty($answers[1])){//detail answer 가 비어있는 경우 
 							$status = 0;
+							//echo "status0 : ".$answers[1]. " ";
 							break;
 						}
 					}
@@ -368,10 +375,15 @@
 						WHERE D.P_ID = '$delegateCode'  order by detailCode ASC ";
 
 			$res = mysqli_query($this->con, $query);
-
+			$status = 0;
 			while($row = mysqli_fetch_array($res))
 			{
-				array_push($response, array('detailCode' => $row[0], 'detailName' => $row[1],'detailHint' => $row[2], 'detailAnswer' => $row[3] ));
+				if(!empty($row[3])){
+					$status = 1;
+				}else{
+					$status = 0;
+				}
+				array_push($response, array('detailCode' => $row[0], 'detailName' => $row[1],'detailHint' => $row[2], 'detailAnswer' => $row[3],'status' => $status));
 			}
 
 			echo json_encode($response,JSON_UNESCAPED_UNICODE);
@@ -462,6 +474,34 @@
 			}else{
 				echo "fail";
 			}
+		}
+
+		public function skipDelegateAndDetail($userID, $delegateCode)
+		{	
+			$response = "success";
+			$query = "SELECT D.ID AS detailCode
+						FROM TEMPLATECONTENT AS D
+						WHERE D.P_ID = '$delegateCode'  order by detailCode ASC ";
+
+			$res = mysqli_query($this->con, $query);
+			if($this->setUserAnswer($userID, $delegateCode , "skipped", "setUserAnswer", false) != "fail")
+			{
+				while($row = mysqli_fetch_array($res))
+				{
+					$response = $this->setUserAnswer($userID, $row[0] , "skipped", "setUserAnswer", false);
+					if($response == "fail")
+					{
+						break;
+					}else{
+						$response = "success";
+					}
+				}
+			}else{
+				$response = "fail";
+			}
+
+			echo $response;
+
 		}
 	}
 

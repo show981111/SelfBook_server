@@ -7,8 +7,8 @@
 	// ini_set("display_errors", 1);
 	$userID = $_POST['userID'];
 	$delegateCode = $_POST['delegateCode'];
-	// $userID = "test0";
-	// $delegateCode = "7";
+	// $userID = "show981111@gmail.com";
+	// $delegateCode = "20";
 	// $userPassword = "test1";
 	// $userName = "test1";
 	//echo "dsad";

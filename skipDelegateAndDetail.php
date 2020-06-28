@@ -4,9 +4,7 @@
 	require_once('selfBook.php');
 
 	$userID = $_POST['userID'];
-	$key = $_POST['key'];
-	$input = $_POST['input'];
-	$from = $_POST['from'];
+	$delegateCode = $_POST['delegateCode'];
 	// $userID = "test1";
 	// $templateCode = "6";
 	// $userPassword = "test1";
@@ -16,8 +14,10 @@
 	// $input = "adsad";
 	// $from = "setBookTitle";
 	$test = new selfBook();
-	if(isset($userID) && isset($input))
+	if(isset($userID) && isset($delegateCode))
 	{
-		$test->setUserAnswer($userID, $key, $input, $from, true);
+		$test->skipDelegateAndDetail($userID, $delegateCode);
+	}else{
+		echo "fail";
 	}
 ?>

@@ -8,7 +8,7 @@
 	// ini_set("display_errors", 1);
 	$userID = $_POST['userID'];
 	$chapterCode = $_POST['chapterCode'];
-	// $userID = "test0";
+	// $userID = "show981111@gmail.com";
 	// $chapterCode = "2";
 	// $userPassword = "test1";
 	// $userName = "test1";
