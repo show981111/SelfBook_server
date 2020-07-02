@@ -5,8 +5,8 @@
 
 	$userID = $_POST['userID'];
 	$templateCode = $_POST['templateCode'];
-	// $userID = "test0";
-	// $userPassword = "test";
+	// $userID = "show981111@gmail.com";
+	// $templateCode = "1";
 
 	// $userID = "test0";
 	// $templateCode = "1";

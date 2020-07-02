@@ -391,12 +391,14 @@
 
 		public function makeOverView($userID, $templateCode)
 		{
-			$query = "SELECT A.ID AS templateCode, A.name AS templateName, B.ID AS chapterCode, B.name AS chapterName,C.ID AS questionCode, C.name AS questionName,C.hint ,D.answer 
+			$query = "SELECT A.ID AS templateCode, A.name AS templateName, B.ID AS chapterCode, B.name AS chapterName,C.ID AS delegateCode, C.name AS delegateName, C.hint AS delegateHint , F.answer AS delegateAnswer, D.ID AS detailCode, D.name AS detailName , D.hint AS detailHint, E.answer AS detailAnswer
 				FROM TEMPLATECONTENT AS A
 				LEFT JOIN TEMPLATECONTENT AS B ON B.P_ID = A.ID
 				LEFT JOIN TEMPLATECONTENT AS C ON C.P_ID = B.ID
-				LEFT JOIN USERANSWER AS D ON (D.Q_ID = C.ID AND D.userID = '$userID')
-				WHERE A.ID = '$templateCode' order by templateCode ASC, chapterCode ASC, questionCode ASC ";
+				LEFT JOIN USERANSWER AS F ON (F.Q_ID = C.ID AND F.userID = '$userID')
+				LEFT JOIN TEMPLATECONTENT AS D ON D.P_ID = C.ID
+				LEFT JOIN USERANSWER AS E ON (E.Q_ID = D.ID AND E.userID = '$userID')
+				WHERE A.ID = '$templateCode' order by templateCode ASC, chapterCode ASC, delegateCode ASC, detailCode ASC ";
 
 			$getTitleQuery = "SELECT title FROM USERPURCHASES WHERE userID = '$userID' AND TemplateCode = '$templateCode' ";
 			$res = mysqli_query($this->con, $getTitleQuery);
@@ -408,42 +410,78 @@
 			$result = mysqli_query($this->con, $query);
 			$count = 0;
 			$pastChapterCode;
-			$pastQuestionCode;
+			$pastDelegateCode;
+			$pastDetailCode;
 			$chapterIndex = -1;
-			$chapterParagraph = "";
+			$delegateIndex = -1;
+			$delegateArray = array();
 			
 			while($row = mysqli_fetch_assoc($result)){
-
+				//echo "dd";
+				$chapterParagraph = "";
+				$delegateParagraph = "";
+				$detailParagraph = "";
+				$chapterNum = 1;
 				if(!empty($row['chapterCode']) && !empty($row['chapterName'])  )
 				{	
 					if($pastChapterCode != $row['chapterCode'])//중복 삽입 방지를 위해서, 이미 삽입된 챕터가 아닐 경우에 
 					{
-						// array_push($response['templateChildren'], array("chapterCode" =>$row['chapterCode'] , "chapterName" => $row['chapterName'], "chapterChildren" => array() ) );
-						$response = $response.$chapterParagraph;
-						$chapterParagraph = "<h2>".$row['chapterName']."</h2>";
-						$chapterIndex++;//인덱스 증가
 						$pastChapterCode = $row['chapterCode'];
+
+						$chapterParagraph = "<h2>". $chapterNum. ". ".$row['chapterName']."</h2>";
+						$response = $response.$chapterParagraph;
+						$chapterIndex++;//인덱스 증가
+						$delegateIndex = -1;
+						//echo "#####CHAPINDEX".$chapterIndex."#######";
+						//echo json_encode($response['templateChildren'][$chapterIndex],JSON_UNESCAPED_UNICODE);
 					}
 					
+					// if($delegateItem){
+					// 	array_push($response['templateChildren'][$chapterIndex]['chapterChildren'], $delegateArray);
+						
+					// }
 				}
-				
-				$questionAndAnswer = "";//&& isset($row['hint']) && isset($row['answer'])
-				if(!empty($row['questionCode']) && !empty($row['questionName']) ){
+				if(!empty($row['delegateCode']) && !empty($row['delegateName']) ){
 					//echo $pastQuestionCode. " VS ". $row['questionCode'];
-					if($pastQuestionCode != $row['questionCode'])//중복 삽입 방지를 위해서
+					if($pastDelegateCode != $row['delegateCode'])//중복 삽입 방지를 위해서
 					{
-						// $questionArray = array("questionCode" =>$row['questionCode'] , "questionName" => $row['questionName'], "hint" => $row['hint'], "answer" => $row['answer'] );
-						$questionAndAnswer = $questionAndAnswer."<b>".$row['questionName']."</b><br>\n".$row['answer']."<br>\n";
-						$chapterParagraph = $chapterParagraph.$questionAndAnswer;
-						$pastQuestionCode = $row['questionCode'];
+						//$delegateItem = true;
+						$pastDelegateCode = $row['delegateCode'];
+						$delegateParagraph = "<h3> *Q : ".$row['delegateName']."</h3>"."<b> *A ".$row['delegateAnswer']."</b><br><br>";
+						$response = $response.$delegateParagraph;
+						$delegateIndex++;
+						
+					}
+					// if(isset($detailArray)){
+					// 	echo "=============";
+					// 	echo json_encode(array('result' => $detailArray),JSON_UNESCAPED_UNICODE);
+					// 	array_push($delegateArray[$delegateIndex]['delegateChildren'], $detailArray);
+						
+					// }
+				}
+				//$detailArray = null;
+
+				if(!empty($row['detailCode']) && !empty($row['detailName']) ){
+					//echo $pastQuestionCode. " VS ". $row['questionCode'];
+					if($pastDetailCode != $row['detailCode'])//중복 삽입 방지를 위해서
+					{
+						$detailParagraph = "<b> Q : ".$row['detailName']."</b><br>\n A : ".$row['detailAnswer']."<br>\n";
+						// $detailArray =  array("detailCode" =>$row['detailCode'] , "detailName" => $row['detailName'], "hint" => $row['detailHint'], "answer" => $row['answer'] );
+						$response = $response.$detailParagraph;
+						$pastDetailCode = $row['detailCode'];
 
 					}
-					
 				}
+
+
+				//$delegateItem = false;//&& isset($row['hint']) && isset($row['answer'])
+				
 
 				
 			}
-			$response = $response.$chapterParagraph;
+			//echo "+++++++++++++++++++++++++++++++++";
+			//$result = array("result" => $response);
+			//echo json_encode($result,JSON_UNESCAPED_UNICODE);
 			echo $response;
 		}
 
@@ -501,6 +539,18 @@
 			}
 
 			echo $response;
+
+		}
+
+		public function downloadDocx($userID, $templateCode){
+			$file_name = $_GET['filename'];
+			$file_name = 'testTemplateVersion.docx';
+			$file_url = 'http://13.125.206.125/document/testTemplateVersion.docx';
+			header('Content-Type: application/octet-stream');
+			header("Content-Transfer-Encoding: Binary"); 
+			header("Content-disposition: attachment; filename=\"".$file_name."\""); 
+			readfile($file_url);
+			exit;
 
 		}
 	}
