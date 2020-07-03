@@ -18,7 +18,7 @@
 
 		public function getTemplateInfo()
 		{
-			$query = "SELECT TemplateCode,Author,TemplateName,price,madeDate FROM TEMPLATEOVERVIEW ";
+			$query = "SELECT TemplateCode,Author,TemplateName,price,madeDate, bookCover FROM TEMPLATEOVERVIEW ";
 			$result = mysqli_query($this->con,$query);
 
 			$response = array();
@@ -27,7 +27,7 @@
 			{
 				while($row = mysqli_fetch_array($result)){
 		
-					array_push($response, array("templateCode"=>$row[0], "author"=>$row[1], "templateName"=>$row[2],"bookPrice"=>$row[3], "madeDate" => $row[4] ));
+					array_push($response, array("templateCode"=>$row[0], "author"=>$row[1], "templateName"=>$row[2],"bookPrice"=>$row[3], "madeDate" => $row[4], "bookCover" => $row[5] ));
 				}
 			}
 
@@ -77,17 +77,11 @@
 			}
 			
 			$query;
-			// if($count == 2)//get ID and PW 
-			// {
-				
-			// 	$query = "SELECT A.userID, A.userName, B.TemplateCode,B.title ,B.publishDate FROM USER A LEFT JOIN USERPURCHASES B ON A.userID = B.userID WHERE A.userID = '$userID' AND A.userPassword = '$userPassword' ";
-			// }else if($count == 1)//get only ID
-			// {
-				
-			// 	$query = "SELECT A.userID, A.userName, B.TemplateCode,B.title ,B.publishDate FROM USER A LEFT JOIN USERPURCHASES B ON A.userID = B.userID WHERE A.userID = '$userID' ";
-			// }
-			//$select = "SELECT A.Teacher, B.userID FROM TEACHERLIST A JOIN USER B ON A.Teacher = B.userName AND A.Branch = '$branch' AND B.userBranch ='$branch'  ";
-			$query = "SELECT A.userID, A.userName, B.TemplateCode,B.title ,B.publishDate, A.userPassword FROM USER A LEFT JOIN USERPURCHASES B ON A.userID = B.userID WHERE A.userID = '$userID' ";
+			
+			$query = "SELECT A.userID, A.userName, B.TemplateCode,B.title ,B.publishDate, A.userPassword, C.bookCover FROM USER A 
+					LEFT JOIN USERPURCHASES B ON A.userID = B.userID 
+					LEFT JOIN TEMPLATEOVERVIEW C ON B.TemplateCode = C.TemplateCode
+					WHERE A.userID = '$userID' ";
 			$flag = 1;
 			if(isset($query))
 			{
@@ -107,7 +101,7 @@
 						}
 						if($flag == 1)
 						{
-							array_push($response, array("userID"=>$row[0], "userName"=>$row[1], "userTemplateCode"=>$row[2], "userBookName"=>$row[3],"userBookPublishDate" => $row[4] ));
+							array_push($response, array("userID"=>$row[0], "userName"=>$row[1], "userTemplateCode"=>$row[2], "userBookName"=>$row[3],"userBookPublishDate" => $row[4], "userBookCover" => $row[6] ));
 						}
 					}
 				}
@@ -551,6 +545,110 @@
 			header("Content-disposition: attachment; filename=\"".$file_name."\""); 
 			readfile($file_url);
 			exit;
+
+		}
+
+		public function makeDocx($userID, $templateCode)
+		{
+			echo "working?";
+			$userName;
+			$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor('/var/www/html/document/testTemplate.docx');
+
+			date_default_timezone_set("Asia/Seoul");
+			$publishDate = date('Y-m-d', time());
+			$templateProcessor->setValue('madeDate', $publishDate);
+
+			$previousPath;
+			$getBasicInfo = "SELECT A.title AS title , A.draftPath AS draftPath , B.userName AS author
+								FROM USERPURCHASES AS A 
+								LEFT JOIN USER AS B ON A.userID = B.userID
+								WHERE A.userID = '$userID' AND A.TemplateCode = '$templateCode' ";
+
+
+			$getBasicInfoRes = mysqli_query($this->con, $getBasicInfo);
+
+			if($getBasicInfoRes && mysqli_num_rows($getBasicInfoRes) > 0)
+			{
+				while($row = mysqli_fetch_array($getBasicInfoRes)){
+					$templateProcessor->setValue('title', $row[0]);
+					$templateProcessor->setValue('userID', $row[2]);
+					$userName = $row[2];
+					$previousPath = $row[1];
+				}
+			}else{
+				echo "fail";
+				return;
+			}
+
+
+			$query = "SELECT C.ID AS delegateCode, C.name AS delegateName ,F.answer AS delegateAnswer
+				FROM TEMPLATECONTENT AS A
+				LEFT JOIN TEMPLATECONTENT AS B ON B.P_ID = A.ID
+				LEFT JOIN TEMPLATECONTENT AS C ON C.P_ID = B.ID
+				LEFT JOIN USERANSWER AS F ON (F.Q_ID = C.ID AND F.userID = '$userID')
+				WHERE A.ID = '$templateCode' order by  delegateCode ASC ";
+
+			$res = mysqli_query($this->con, $query);
+			$replacement = array();
+			while($row = mysqli_fetch_array($res)){
+
+				array_push($replacement, array("question" => $row[1], "answer" => $row[2]) );//여기에 스킵만 제외하는 조건문 걸면 끄읕!
+
+
+				$getDetailQuery = "SELECT A.ID AS detailCode, A.name AS detailName, B.answer AS detailAnswer
+									FROM TEMPLATECONTENT AS A LEFT JOIN USERANSWER AS B ON (B.Q_ID = A.ID AND B.userID = '$userID')
+									WHERE A.P_ID = '$row[0]' ";
+				
+				$detailRes = mysqli_query($this->con, $getDetailQuery);
+				
+				if($detailRes)
+				{
+					while($detail = mysqli_fetch_array($detailRes)) {
+						// echo "inside";
+						// echo $detail[0]. " : ". $detail[1];
+						if(!empty($detail[1]) && $detail[0] <= 14)//여기에 스킵만 제외하는 조건문 걸면 끄읕!
+						{
+							// echo "block".$detail[0];
+							array_push($replacement, array("question" => $detail[1], "answer" => $detail[2]) );
+							
+							//$templateProcessor->setValue($detail[0], $detail[1]);
+							//$templateProcessor->deleteBlock("block".$row[0]);
+							
+						}
+					}
+				}
+
+
+			}
+
+			$templateProcessor->cloneBlock("content", 0, true, false,$replacement );
+
+			$base_URL = "/var/www/html/document/";
+			if(!empty($previousPath))
+			{
+				$previousURL = $base_URL.$previousPath;
+				if(file_exists($previousURL))
+				{
+					unlink($previousURL);
+					echo "success?";
+				}
+			}
+
+			$today = date('YmdHi', time());
+			$newPath = $userName."(".$today.").docx";
+
+			$updateNewPath = "UPDATE USERPURCHASES SET draftPath = '$newPath' WHERE userID = '$userID' AND TemplateCode = '$templateCode'";
+			$updateRes = mysqli_query($this->con, $updateNewPath);
+
+			if(mysqli_affected_rows($this->con) > 0)
+			{
+				echo "success";
+			}else{
+				echo "fail";
+			}
+
+			
+			$templateProcessor->saveAs($base_URL.$newPath);
 
 		}
 	}
