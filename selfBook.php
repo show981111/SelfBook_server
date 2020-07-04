@@ -4,6 +4,8 @@
 	class selfBook{
 
 		private $con;
+		private $s3;
+		private $bucketName;
 
 		public function __construct()
 		{
@@ -537,20 +539,35 @@
 		}
 
 		public function downloadDocx($userID, $templateCode){
-			$file_name = $_GET['filename'];
-			$file_name = 'testTemplateVersion.docx';
-			$file_url = 'http://13.125.206.125/document/testTemplateVersion.docx';
-			header('Content-Type: application/octet-stream');
-			header("Content-Transfer-Encoding: Binary"); 
-			header("Content-disposition: attachment; filename=\"".$file_name."\""); 
-			readfile($file_url);
-			exit;
+			$result_s3 = $this->s3_connect();
+			if($result_s3 != "fail"){
+				$query = "SELECT draftPath FROM USERPURCHASES WHERE userID = '$userID' AND TemplateCode = '$templateCode' ";
+				$res = mysqli_query($this->con,$query);
+				if($res)
+				{
+					$key;
+					while($row = mysqli_fetch_array($res)){
+						$key = $row[0];
+					}
+					if(!empty($key))
+					{
+						$keyPath = 'document/'.$key;
+						$this->downloadFileFromS3($keyPath, $key);
+					}else{
+						echo "noPurchase";
+						return;
+					}
+				}else{
+					echo "fail";
+				}
+			}else{
+				echo "fail";
+			}
 
 		}
 
 		public function makeDocx($userID, $templateCode)
 		{
-			echo "working?";
 			$userName;
 			$templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor('/var/www/html/document/testTemplate.docx');
 
@@ -558,8 +575,8 @@
 			$publishDate = date('Y-m-d', time());
 			$templateProcessor->setValue('madeDate', $publishDate);
 
-			$previousPath;
-			$getBasicInfo = "SELECT A.title AS title , A.draftPath AS draftPath , B.userName AS author
+		
+			$getBasicInfo = "SELECT A.title AS title , B.userName AS author
 								FROM USERPURCHASES AS A 
 								LEFT JOIN USER AS B ON A.userID = B.userID
 								WHERE A.userID = '$userID' AND A.TemplateCode = '$templateCode' ";
@@ -571,9 +588,8 @@
 			{
 				while($row = mysqli_fetch_array($getBasicInfoRes)){
 					$templateProcessor->setValue('title', $row[0]);
-					$templateProcessor->setValue('userID', $row[2]);
-					$userName = $row[2];
-					$previousPath = $row[1];
+					$templateProcessor->setValue('userID', $row[1]);
+					$userName = $row[1];
 				}
 			}else{
 				echo "fail";
@@ -623,33 +639,129 @@
 
 			$templateProcessor->cloneBlock("content", 0, true, false,$replacement );
 
-			$base_URL = "/var/www/html/document/";
-			if(!empty($previousPath))
-			{
-				$previousURL = $base_URL.$previousPath;
-				if(file_exists($previousURL))
-				{
-					unlink($previousURL);
-					echo "success?";
-				}
-			}
+			$newPath = $userName."_".$templateCode.".docx";
 
-			$today = date('YmdHi', time());
-			$newPath = $userName."(".$today.").docx";
-
-			$updateNewPath = "UPDATE USERPURCHASES SET draftPath = '$newPath' WHERE userID = '$userID' AND TemplateCode = '$templateCode'";
+			$updateNewPath = "UPDATE USERPURCHASES SET draftPath = '$newPath', publishDate = '$publishDate' WHERE userID = '$userID' AND TemplateCode = '$templateCode'";
 			$updateRes = mysqli_query($this->con, $updateNewPath);
 
-			if(mysqli_affected_rows($this->con) > 0)
-			{
-				echo "success";
-			}else{
-				echo "fail";
-			}
-
-			
+			// if(mysqli_affected_rows($this->con) > 0)
+			// {
+			// 	echo "success";
+			// }else{
+			// 	echo "fail";
+			// }
+			$base_URL = "/var/www/html/document/";
+			//1. save it to ec2 first
 			$templateProcessor->saveAs($base_URL.$newPath);
+			//2.send it to S3
+			$result_s3 = $this->s3_connect();
 
+
+			if($result_s3 != "fail")
+			{
+				$file_url = $base_URL.$newPath;
+				$keyPath = 'document/'.$newPath;
+				$result_s3 = $this->uploadFileToS3($file_url, $keyPath);
+				
+				if(file_exists($file_url))
+				{
+					unlink($file_url);
+				}
+				
+			}else{
+				echo $result_s3;
+				return;
+			}
+			echo $result_s3;
+			
+
+		}
+
+
+
+		public function s3_connect(){
+			include 's3key.php';
+
+			try{
+				$this->s3 = new Aws\S3\S3Client([
+					'region'  => 'ap-northeast-2',
+					'version' => 'latest',
+					'credentials' => [
+						'key'    => $key,
+						'secret' => $secret,
+					]
+				]);
+			}catch (S3Exception $e) {
+			    echo $e->getMessage() . PHP_EOL;
+			    return "fail";
+			};
+
+			$this->bucketName = "selfbook-bucket-1";
+			return "success";
+
+
+		}
+
+		public function deleteFileFromS3($key){
+
+			try{
+				$result = $this->s3->deleteObject(array(
+				    'Bucket' => $this->bucketName,
+				    'Key'    => $key
+				));  
+
+			}catch (S3Exception $e) {
+			    echo $e->getMessage() . PHP_EOL;
+			};
+			exit;
+			     
+		}
+
+		public function uploadFileToS3($ec2Path, $key){
+
+			$file_data = file_get_contents($ec2Path);
+
+			try {
+    				// Upload data.
+			    $result = $this->s3->putObject([
+			        'Bucket' => $this->bucketName,
+			        'Key'    => $key,
+			        'Body'   => $file_data,
+			        // 'ACL'    => 'public-read'
+			    ]);
+
+			    // Print the URL to the object.
+			    $res_URL = $result['ObjectURL'];
+			    if(!empty($res_URL))
+			    {
+			    	return "success";
+			    }else{
+			    	return "fail";
+			    }
+			    
+			} catch (S3Exception $e) {
+			    echo $e->getMessage() . PHP_EOL;
+			    return "fail";
+			}
+		}
+
+		public function downloadFileFromS3($key, $fileName){
+
+			try {
+			    // Get the object.
+			    $result = $this->s3->getObject([
+			        'Bucket' => $this->bucketName,
+			        'Key'    => $key
+			    ]);
+
+			    // Display the object in the browser.
+			    header("Content-Type: {$result['ContentType']}");
+			    header('Content-Disposition: attachment; filename=' . $fileName);
+			    echo $result['Body'];
+			    exit;
+			} catch (S3Exception $e) {
+			    echo $e->getMessage() . PHP_EOL;
+			}
 		}
 	}
 
