@@ -3,18 +3,21 @@
 require_once './vendor/autoload.php';
 require_once('selfBook.php');
 
-// $userID = "show981111@gmail.com";
-// $templateCode = "1";
+$userID = "show981111@gmail.com";
+$templateCode = "1";
+error_reporting(E_ALL);
 
-$userID = $_POST['userID'];
-$templateCode = $_POST['templateCode'];
+ini_set("display_errors", 1);
+
+// $userID = $_POST['userID'];
+// $templateCode = $_POST['templateCode'];
 
 
 
 if(isset($userID) && isset($templateCode))
 {
 	$test = new selfBook();
-	$test->makeDocx($userID, $templateCode);
+	$test->getImage();
 }else{
 	echo "fail";
 }

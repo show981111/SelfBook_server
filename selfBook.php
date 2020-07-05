@@ -608,7 +608,10 @@
 			$replacement = array();
 			while($row = mysqli_fetch_array($res)){
 
-				array_push($replacement, array("question" => $row[1], "answer" => $row[2]) );//여기에 스킵만 제외하는 조건문 걸면 끄읕!
+				if(!empty($row[2]) && $row[2] != "skipped" )
+				{
+					array_push($replacement, array("question" => $row[1], "answer" => $row[2]) );//여기에 스킵만 제외하는 조건문 걸면 끄읕!
+				}
 
 
 				$getDetailQuery = "SELECT A.ID AS detailCode, A.name AS detailName, B.answer AS detailAnswer
@@ -622,7 +625,7 @@
 					while($detail = mysqli_fetch_array($detailRes)) {
 						// echo "inside";
 						// echo $detail[0]. " : ". $detail[1];
-						if(!empty($detail[1]) && $detail[0] <= 14)//여기에 스킵만 제외하는 조건문 걸면 끄읕!
+						if(!empty($detail[2]) && $detail[2] != "skipped")//여기에 스킵만 제외하는 조건문 걸면 끄읕!
 						{
 							// echo "block".$detail[0];
 							array_push($replacement, array("question" => $detail[1], "answer" => $detail[2]) );
@@ -762,6 +765,11 @@
 			} catch (S3Exception $e) {
 			    echo $e->getMessage() . PHP_EOL;
 			}
+		}
+
+		public function getImage(){
+			$this->s3_connect();
+			$this->downloadFileFromS3('images/test_movie_1.png','test_movie_1.png');
 		}
 	}
 
