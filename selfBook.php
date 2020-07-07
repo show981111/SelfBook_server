@@ -20,7 +20,7 @@
 
 		public function getTemplateInfo()
 		{
-			$query = "SELECT TemplateCode,Author,TemplateName,price,madeDate, bookCover FROM TEMPLATEOVERVIEW ";
+			$query = "SELECT TemplateCode,Author,TemplateName,price,madeDate, bookCover, templateIntro FROM TEMPLATEOVERVIEW ";
 			$result = mysqli_query($this->con,$query);
 
 			$response = array();
@@ -29,7 +29,7 @@
 			{
 				while($row = mysqli_fetch_array($result)){
 		
-					array_push($response, array("templateCode"=>$row[0], "author"=>$row[1], "templateName"=>$row[2],"bookPrice"=>$row[3], "madeDate" => $row[4], "bookCover" => $row[5] ));
+					array_push($response, array("templateCode"=>$row[0], "author"=>$row[1], "templateName"=>$row[2],"bookPrice"=>$row[3], "madeDate" => $row[4], "bookCover" => $row[5], "templateIntro" => $row[6] ));
 				}
 			}
 
