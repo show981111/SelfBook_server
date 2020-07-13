@@ -606,11 +606,19 @@
 
 			$res = mysqli_query($this->con, $query);
 			$replacement = array();
+			$isFull = 1;
+			$notFull;
 			while($row = mysqli_fetch_array($res)){
+
+				if($isFull != 1) break;
 
 				if(!empty($row[2]) && $row[2] != "skipped" )
 				{
 					array_push($replacement, array("question" => $row[1], "answer" => $row[2]) );//여기에 스킵만 제외하는 조건문 걸면 끄읕!
+				}else{
+					$isFull = 0;
+					$notFull = $row[1];
+					break;
 				}
 
 
@@ -633,11 +641,20 @@
 							//$templateProcessor->setValue($detail[0], $detail[1]);
 							//$templateProcessor->deleteBlock("block".$row[0]);
 							
+						}else{
+							$isFull = 0;
+							$notFull = $detail[1];
+							break;
 						}
 					}
 				}
 
 
+			}
+
+			if($isFull == 0){ 
+				echo $notFull;
+				return; 
 			}
 
 			$templateProcessor->cloneBlock("content", 0, true, false,$replacement );
