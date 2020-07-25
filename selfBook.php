@@ -410,6 +410,7 @@
 			$pastDetailCode;
 			$chapterIndex = -1;
 			$delegateIndex = -1;
+			$chapterNum = 1;
 			$delegateArray = array();
 			
 			while($row = mysqli_fetch_assoc($result)){
@@ -417,17 +418,18 @@
 				$chapterParagraph = "";
 				$delegateParagraph = "";
 				$detailParagraph = "";
-				$chapterNum = 1;
 				if(!empty($row['chapterCode']) && !empty($row['chapterName'])  )
 				{	
 					if($pastChapterCode != $row['chapterCode'])//중복 삽입 방지를 위해서, 이미 삽입된 챕터가 아닐 경우에 
 					{
 						$pastChapterCode = $row['chapterCode'];
-
+			
 						$chapterParagraph = "<h2>". $chapterNum. ". ".$row['chapterName']."</h2>";
 						$response = $response.$chapterParagraph;
 						$chapterIndex++;//인덱스 증가
 						$delegateIndex = -1;
+						$chapterNum++;
+
 						//echo "#####CHAPINDEX".$chapterIndex."#######";
 						//echo json_encode($response['templateChildren'][$chapterIndex],JSON_UNESCAPED_UNICODE);
 					}
@@ -443,7 +445,7 @@
 					{
 						//$delegateItem = true;
 						$pastDelegateCode = $row['delegateCode'];
-						$delegateParagraph = "<h3> *Q : ".$row['delegateName']."</h3>"."<b> *A ".$row['delegateAnswer']."</b><br><br>";
+						$delegateParagraph = "<h3>*Q : ".$row['delegateName']."</h3>"."<b>*A : ".$row['delegateAnswer']."</b><br><br>";
 						$response = $response.$delegateParagraph;
 						$delegateIndex++;
 						
@@ -461,7 +463,7 @@
 					//echo $pastQuestionCode. " VS ". $row['questionCode'];
 					if($pastDetailCode != $row['detailCode'])//중복 삽입 방지를 위해서
 					{
-						$detailParagraph = "<b> Q : ".$row['detailName']."</b><br>\n A : ".$row['detailAnswer']."<br>\n";
+						$detailParagraph = "<b>Q : ".$row['detailName']."</b><br>\nA : ".$row['detailAnswer']."<br>\n";
 						// $detailArray =  array("detailCode" =>$row['detailCode'] , "detailName" => $row['detailName'], "hint" => $row['detailHint'], "answer" => $row['answer'] );
 						$response = $response.$detailParagraph;
 						$pastDetailCode = $row['detailCode'];
@@ -554,13 +556,19 @@
 						$keyPath = 'document/'.$key;
 						$this->downloadFileFromS3($keyPath, $key);
 					}else{
+						http_response_code(403);
+						die('Forbidden');
 						echo "noPurchase";
 						return;
 					}
 				}else{
+					http_response_code(403);
+					die('Forbidden');
 					echo "fail";
 				}
 			}else{
+				http_response_code(403);
+				die('Forbidden');
 				echo "fail";
 			}
 
@@ -775,7 +783,9 @@
 			    ]);
 
 			    // Display the object in the browser.
+			    //$size = $result['size'];
 			    header("Content-Type: {$result['ContentType']}");
+			    header("Content-length: {$result['ContentLength']}");
 			    header('Content-Disposition: attachment; filename=' . $fileName);
 			    echo $result['Body'];
 			    exit;

@@ -12,5 +12,10 @@
 	// $userName = "test1";
 
 	$test = new selfBook();
-	$test->setUserPurchase($userID, $templateCode);
+	if(isset($userID) && isset($templateCode))
+	{
+		$test->setUserPurchase($userID, $templateCode);
+	}else{
+		echo "fail";
+	}
 ?>

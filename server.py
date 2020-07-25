@@ -3,7 +3,7 @@ import socket
 import time
 import select
 
-host = 'myIP' # Symbolic name meaning all available interfaces
+host = '172.31.33.121' # Symbolic name meaning all available interfaces
 port = 5656 # Arbitrary non-privileged port
  
 
@@ -15,6 +15,7 @@ print(server_sock)
 sockets_list = [server_sock]#socket list... multiple clients 
 
 clients = {}#socket is the key, user Data will be value 
+receiver_clients = {}
 
 print("기다리는 중")
 # client_sock, addr = server_sock.accept()
@@ -89,10 +90,18 @@ while True:
 				print("USER FALSE")
 				continue
 
+			print(user['data'].decode('utf-8') + " is connected ")
+			userType = user['data'].decode('utf-8')
+			print(userType)
+
+			if userType == 'receiver':
+				print('pass receiver')
+				receiver_clients[client_socket] = user
+				print("ACCEPTED AS receiver")
+
 			sockets_list.append(client_socket)
 
 			clients[client_socket] = user  # [client_socket : {data : data}] set user data when user connected 
-			print("ACCEPTED connection")
 			#print(f"Accepted new connection fron {client_address[0]}:{client_address[1]} username : {user['data'].decode('utf-8')} ")
 
 		else: 
@@ -105,7 +114,7 @@ while True:
 				continue
 
 			user = clients[notified_socket] # same with message above, notified socekt is a socket that sends the data
-		
+
 
 			#print(f"received message from {user['data'].decode('utf-8')} : {message['data'].decode('utf-8')}")
 
@@ -113,7 +122,7 @@ while True:
 			print("@@@@@@@@@@@")
 			print(str(clients))
 			print("@@@@@@@@@@@")
-			for client_socket in clients:
+			for client_socket in receiver_clients:#clients
 				#print("for loop")
 				
 				print("------------------------")
