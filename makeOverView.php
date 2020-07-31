@@ -3,8 +3,8 @@
 	//consoleTest("hi");
 	require_once('selfBook.php');
 
-	$userID = $_POST['userID'];
-	$templateCode = $_POST['templateCode'];
+	$userID = $_GET['userID'];
+	$templateCode = $_GET['templateCode'];
 	// $userID = "show981111@gmail.com";
 	// $templateCode = "1";
 

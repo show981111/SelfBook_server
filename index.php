@@ -28,8 +28,9 @@
 	// 	exit(); 
 	// }
 	$jwt = null;
+	$granted = 0;
 
-	if($uri[1] !== 'auth'){
+	if($uri[1] !== 'login'){
 		$data = json_decode(file_get_contents("php://input"));
 		$authHeader = $_SERVER['HTTP_AUTHORIZATION'];
 		$arr = explode(" ", $authHeader);
@@ -48,31 +49,48 @@
 		            "error" => $e->getMessage()
 		        ));
 
+		        $granted = 1;
+
 		    }catch (Exception $e){
 
 			    http_response_code(401);
-
+			    $granted = 0;
 			    echo json_encode(array(
 			        "message" => "Access denied.",
 			        "error" => $e->getMessage()
 			    ));
+			    //return; 
 			}
+		}else{
+			http_response_code(401);
+			return;
 		}
 	}
 
-	$requestMethod = $_SERVER["REQUEST_METHOD"];
+	if($granted == 0 || $uri[1] === 'login'){
 
-	switch ($requestMethod) {
-		case 'POST':
-			if($uri[1] === 'auth'){
-				require_once('userAuth.php');
-			}
-			//require_once('getUserInfo.php');
-			break;
-		
-		default:
-			# code...
-			break;
+		require_once('route.php');
+
+		$requestMethod = $_SERVER["REQUEST_METHOD"];
+
+		$route = new Route();
+		// $route->get($uri[1]);
+
+		switch ($requestMethod) {
+			case 'GET':
+				$route->get($uri[1]);
+				break;
+			case 'POST':
+				$route->post($uri[1]);
+				break;
+			case 'PUT':
+				$route->put($uri[1]);
+				break;
+			
+			default:
+				header("HTTP/1.1 404 Not Found"); 
+				break;
+		}
 	}
 
 ?>
