@@ -1,5 +1,7 @@
 <?php
 	
+	//include 'db.php';
+	use \Firebase\JWT\JWT;
 
 	class selfBook{
 
@@ -108,6 +110,63 @@
 					}
 				}
 			}
+
+			echo json_encode($response,JSON_UNESCAPED_UNICODE);
+		}
+
+		public function userAuth($userID, $userPassword)
+		{
+			include 'db.php';
+			//use \Firebase\JWT\JWT;
+
+			$query = "SELECT A.userID, A.userPassword, A.userName FROM USER A WHERE A.userID = '$userID' ";
+			$flag = 1;
+			$result = mysqli_query($this->con, $query);
+			$response = array();
+			if($result)
+			{
+				while($row = mysqli_fetch_array($result)){
+					if(password_verify($userPassword, $row[1])){
+
+						$falg = 1;
+					}else{
+						$flag = 0;
+						// echo $userPassword. " ". $row[5];
+					}
+
+
+					if($flag == 1)
+					{
+						$secret_key = $secretKey;
+						$issuer_claim = "selfbook.com"; // this can be the servername
+						$audience_claim = $userID;
+						$issuedat_claim = time(); // issued at
+						$notbefore_claim = $issuedat_claim; //not before in seconds
+						$expire_claim = $issuedat_claim + 60; // expire time in seconds
+						$token = array(
+						    "iss" => $issuer_claim,
+						    "aud" => $audience_claim,
+						    "iat" => $issuedat_claim,
+						    "nbf" => $notbefore_claim,
+						    "exp" => $expire_claim,
+						    "data" => array(
+						        "userID" => $userID,
+						        "userName" => $row[2],
+						));
+
+						http_response_code(200);
+
+						$jwt = JWT::encode($token, $secret_key);
+						echo json_encode(
+						    array(
+						        "message" => "success",
+						        "jwt" => $jwt,
+						        "expireAt" => $expire_claim
+						    ));
+					}
+				}
+			}
+			
 
 			echo json_encode($response,JSON_UNESCAPED_UNICODE);
 		}

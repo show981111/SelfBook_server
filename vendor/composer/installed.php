@@ -29,6 +29,15 @@
       ),
       'reference' => 'df5406b49f4f5774045e51e8fecc75717c4d6454',
     ),
+    'firebase/php-jwt' => 
+    array (
+      'pretty_version' => 'v5.2.0',
+      'version' => '5.2.0.0',
+      'aliases' => 
+      array (
+      ),
+      'reference' => 'feb0e820b8436873675fd3aca04f3728eb2185cb',
+    ),
     'guzzlehttp/guzzle' => 
     array (
       'pretty_version' => '7.0.1',
