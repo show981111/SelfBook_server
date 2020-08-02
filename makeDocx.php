@@ -3,11 +3,16 @@
 require_once './vendor/autoload.php';
 require_once('selfBook.php');
 
-// $userID = "show981111@gmail.com";
-// $templateCode = "1";
 
-$userID = $_POST['userID'];
-$templateCode = $_POST['templateCode'];
+
+parse_str(file_get_contents('php://input'), $_PUT);
+	//var_dump($_PUT);
+
+	// echo file_get_contents('php://input');
+
+
+$userID = $_PUT['userID'];
+$templateCode = $_PUT['templateCode'];
 
 
 

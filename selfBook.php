@@ -34,7 +34,7 @@
 					array_push($response, array("templateCode"=>$row[0], "author"=>$row[1], "templateName"=>$row[2],"bookPrice"=>$row[3], "madeDate" => $row[4], "bookCover" => $row[5], "templateIntro" => $row[6] ));
 				}
 			}
-
+			
 			echo json_encode($response,JSON_UNESCAPED_UNICODE);
 		}
 
@@ -106,6 +106,8 @@
 						if($flag == 1)
 						{
 							array_push($response, array("userID"=>$row[0], "userName"=>$row[1], "userTemplateCode"=>$row[2], "userBookName"=>$row[3],"userBookPublishDate" => $row[4], "userBookCover" => $row[6] ));
+
+
 						}
 					}
 				}
@@ -119,8 +121,8 @@
 			include 'db.php';
 			//use \Firebase\JWT\JWT;
 
-			$query = "SELECT A.userID, A.userPassword, A.userName FROM USER A WHERE A.userID = '$userID' ";
-			$flag = 1;
+			$query = "SELECT A.userID, A.userPassword, A.userName FROM USER A WHERE A.userID = '$userID' LIMIT 1 ";
+			$flag = 0;
 			$result = mysqli_query($this->con, $query);
 			$response = array();
 			if($result)
@@ -128,7 +130,7 @@
 				while($row = mysqli_fetch_array($result)){
 					if(password_verify($userPassword, $row[1])){
 
-						$falg = 1;
+						$flag = 1;
 					}else{
 						$flag = 0;
 						// echo $userPassword. " ". $row[5];
@@ -140,10 +142,13 @@
 						$secret_key = $secretKey;
 						$issuer_claim = "selfbook.com"; // this can be the servername
 						$audience_claim = $userID;
+						date_default_timezone_set("Asia/Seoul");
 						$issuedat_claim = time(); // issued at
 						$notbefore_claim = $issuedat_claim; //not before in seconds
-						$expire_claim = $issuedat_claim + 60; // expire time in seconds
-						$token = array(
+						$expire_claim = $issuedat_claim + 8000; // expire time in seconds
+
+						//$header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
+						$payload = array(
 						    "iss" => $issuer_claim,
 						    "aud" => $audience_claim,
 						    "iat" => $issuedat_claim,
@@ -152,23 +157,23 @@
 						    "data" => array(
 						        "userID" => $userID,
 						        "userName" => $row[2],
-						));
+						        // "userID" => "hello"
+							)
+						);
 
 						http_response_code(200);
 
-						$jwt = JWT::encode($token, $secret_key);
-						echo json_encode(
-						    array(
-						        "message" => "success",
-						        "jwt" => $jwt,
-						        "expireAt" => $expire_claim
-						    ));
+						$jwt = JWT::encode($payload, $secret_key);
+						echo $jwt;
+						return;
 					}
 				}
-			}
-			
 
-			echo json_encode($response,JSON_UNESCAPED_UNICODE);
+			}
+
+			if($flag == 0){
+				http_response_code(401);
+			}
 		}
 
 		public function setUserPurchase($userID, $templateCode)

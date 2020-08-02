@@ -36,7 +36,6 @@
 					break;
 				
 				default:
-					echo "nothing";
 					header("HTTP/1.1 404 Not Found"); 
 					break;
 			}
@@ -44,7 +43,6 @@
 
 		public function post($request){
 
-			echo $request;
 
 			switch ($request) {
 				case 'user':
@@ -59,7 +57,7 @@
 				case 'authCode':
 					require_once('sendAuth.php');
 					break;
-				
+			
 				default:
 					header("HTTP/1.1 404 Not Found"); 
 					break;

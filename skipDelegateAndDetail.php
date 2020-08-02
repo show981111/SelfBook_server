@@ -3,16 +3,13 @@
 	//consoleTest("hi");
 	require_once('selfBook.php');
 
-	$userID = $_POST['userID'];
-	$delegateCode = $_POST['delegateCode'];
-	// $userID = "test1";
-	// $templateCode = "6";
-	// $userPassword = "test1";
-	// $userName = "test1";
-	// $userID = "test0";
-	// $key = "1";
-	// $input = "adsad";
-	// $from = "setBookTitle";
+	parse_str(file_get_contents('php://input'), $_PUT);
+	//var_dump($_PUT);
+
+	// echo file_get_contents('php://input');
+	$userID = $_PUT["userID"];
+	$delegateCode = $_PUT["delegateCode"];
+
 	$test = new selfBook();
 	if(isset($userID) && isset($delegateCode))
 	{

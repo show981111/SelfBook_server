@@ -6,8 +6,11 @@
 	// error_reporting(E_ALL);
 
 	// ini_set("display_errors", 1);
-	$userID = $_POST['userID'];
-	$chapterCode = $_POST['chapterCode'];
+	$userID = $_GET['userID'];
+	$chapterCode = $_GET['chapterCode'];
+
+	// $userID = $_POST['userID'];
+	// $chapterCode = $_POST['chapterCode'];
 	// $userID = "show981111@gmail.com";
 	// $chapterCode = "2";
 	// $userPassword = "test1";

@@ -5,8 +5,8 @@
 	// error_reporting(E_ALL);
 
 	// ini_set("display_errors", 1);
-	$userID = $_POST['userID'];
-	$delegateCode = $_POST['delegateCode'];
+	$userID = $_GET['userID'];
+	$delegateCode = $_GET['delegateCode'];
 	// $userID = "show981111@gmail.com";
 	// $delegateCode = "20";
 	// $userPassword = "test1";

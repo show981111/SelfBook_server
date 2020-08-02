@@ -13,9 +13,9 @@
 	include 'db.php';
 	require_once './vendor/autoload.php';
 	use \Firebase\JWT\JWT;
-	error_reporting(E_ALL);
+	// error_reporting(E_ALL);
 
-	ini_set("display_errors", 1);
+	// ini_set("display_errors", 1);
 
 	$request = $_SERVER['REQUEST_URI'];
 	
@@ -35,31 +35,16 @@
 		$authHeader = $_SERVER['HTTP_AUTHORIZATION'];
 		$arr = explode(" ", $authHeader);
 		$jwt = $arr[1];
-
+		//echo $jwt;
+		
 		if($jwt){
 
 		    try {
-
 		        $decoded = JWT::decode($jwt, $secretKey, array('HS256'));
-
-		        // Access is granted. Add code of the operation here 
-
-		        echo json_encode(array(
-		            "message" => "Access granted:",
-		            "error" => $e->getMessage()
-		        ));
-
 		        $granted = 1;
-
 		    }catch (Exception $e){
-
 			    http_response_code(401);
-			    $granted = 0;
-			    echo json_encode(array(
-			        "message" => "Access denied.",
-			        "error" => $e->getMessage()
-			    ));
-			    //return; 
+			    return;
 			}
 		}else{
 			http_response_code(401);
@@ -67,7 +52,7 @@
 		}
 	}
 
-	if($granted == 0 || $uri[1] === 'login'){
+	if($granted == 1 || $uri[1] === 'login'){
 
 		require_once('route.php');
 
