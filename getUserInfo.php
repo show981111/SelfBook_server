@@ -2,7 +2,7 @@
 	
 	//consoleTest("hi");
 	require_once('selfBook.php');
-
+	//require_once('authCheck.php');
 
 	$userID = $_GET['userID'];
 	//$userID = "test0";

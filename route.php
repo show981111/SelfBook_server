@@ -25,7 +25,7 @@
 				case 'delegates':
 					require_once('getDelegate.php');
 					break;
-				case 'detail':
+				case 'details':
 					require_once('getDetail.php');
 					break;
 				case 'purchases':
@@ -69,7 +69,7 @@
 				case 'answer':
 					require_once('setUserAnswer.php');
 					break;
-				case 'user':
+				case 'resetUser':
 					require_once('resetPW.php');
 					break;
 				case 'answers':

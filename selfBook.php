@@ -2,6 +2,7 @@
 	
 	//include 'db.php';
 	use \Firebase\JWT\JWT;
+	require_once('authCheck.php');
 
 	class selfBook{
 
