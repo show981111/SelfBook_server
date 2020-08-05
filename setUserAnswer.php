@@ -13,7 +13,8 @@
 
 	// echo file_get_contents('php://input');
 
-	$userID = $_PUT['userID'];
+	//$userID = $_PUT['userID'];
+	$userID = $this->userID;
 	$key = $_PUT['key'];
 	$input = $_PUT['input'];
 	$from = $_PUT['from'];

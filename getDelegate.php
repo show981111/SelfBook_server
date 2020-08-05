@@ -6,7 +6,8 @@
 	// error_reporting(E_ALL);
 
 	// ini_set("display_errors", 1);
-	$userID = $_GET['userID'];
+	//$userID = $_GET['userID'];
+	$userID = $this->userID;
 	$chapterCode = $_GET['chapterCode'];
 
 	// $userID = $_POST['userID'];

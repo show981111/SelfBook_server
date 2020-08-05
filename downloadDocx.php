@@ -7,7 +7,9 @@
 
 	ini_set("display_errors", 1);
 
-	$userID = $_GET['userID'];
+
+	//$userID = $_GET['userID'];
+	$userID = $this->userID;
 	$templateCode = $_GET['templateCode'];
 	//$userID = 'show981111@gmail.com';
 	// $templateCode = '1';

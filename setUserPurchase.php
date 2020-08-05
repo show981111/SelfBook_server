@@ -3,7 +3,8 @@
 	//consoleTest("hi");
 	require_once('selfBook.php');
 
-	$userID = $_POST['userID'];
+	//$userID = $_POST['userID'];
+	$userID = $this->userID;
 	$templateCode = $_POST['templateCode'];
 	
 	// $userID = "test1";

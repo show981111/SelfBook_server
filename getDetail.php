@@ -5,7 +5,8 @@
 	// error_reporting(E_ALL);
 
 	// ini_set("display_errors", 1);
-	$userID = $_GET['userID'];
+	//$userID = $_GET['userID'];
+	$userID = $this->userID;
 	$delegateCode = $_GET['delegateCode'];
 	// $userID = "show981111@gmail.com";
 	// $delegateCode = "20";

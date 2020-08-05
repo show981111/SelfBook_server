@@ -3,13 +3,9 @@
 	//consoleTest("hi");
 	require_once('selfBook.php');
 	//require_once('authCheck.php');
-
-	$userID = $_GET['userID'];
-	//$userID = "test0";
-	// $userPassword = "test";
-	// $userID = "test5";
-	// $userPassword = "test5";
-
+	//echo "USER ".$tokenUserID;
+	// $userID = $_GET['userID'];
+	$userID = $this->userID;
 	$test = new selfBook();
 
 	if(isset($userID))

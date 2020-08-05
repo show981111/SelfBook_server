@@ -11,7 +11,8 @@ parse_str(file_get_contents('php://input'), $_PUT);
 	// echo file_get_contents('php://input');
 
 
-$userID = $_PUT['userID'];
+//$userID = $_PUT['userID'];
+$userID = $this->userID;
 $templateCode = $_PUT['templateCode'];
 
 

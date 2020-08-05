@@ -3,9 +3,10 @@
 	//consoleTest("hi");
 	require_once('selfBook.php');
 
-	$userID = $_GET['userID'];
+	//$userID = $_GET['userID'];
+	$userID = $this->userID;
 	$templateCode = $_GET['templateCode'];
-	// $userID = "show981111@gmail.com";
+	//$userID = $_GET['userID'];
 	// $templateCode = "1";
 
 	// $userID = "test0";

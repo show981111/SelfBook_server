@@ -1,12 +1,15 @@
 <?php
+
 	
 	class Route{
 
-		public function __construct()
+		public $userID;
+
+		public function __construct($tokenUserID)
 		{
+			$this->userID = $tokenUserID;
 			//echo "ROUTE INIT";
 		}
-
 		
 		public function get($request){
 			switch ($request) {
@@ -29,6 +32,7 @@
 					require_once('getDetail.php');
 					break;
 				case 'purchases':
+					//echo "constructer ".$this->userID;
 					require_once('getUserInfo.php');
 					break;
 				case 'draft':
@@ -57,7 +61,10 @@
 				case 'authCode':
 					require_once('sendAuth.php');
 					break;
-			
+				case 'checkVerificationCode':
+					require_once('checkVerificationCode.php');
+					break;
+
 				default:
 					header("HTTP/1.1 404 Not Found"); 
 					break;

@@ -7,7 +7,8 @@
 	//var_dump($_PUT);
 
 	// echo file_get_contents('php://input');
-	$userID = $_PUT["userID"];
+	//$userID = $_PUT["userID"];
+	$userID = $this->userID;
 	$delegateCode = $_PUT["delegateCode"];
 
 	$test = new selfBook();

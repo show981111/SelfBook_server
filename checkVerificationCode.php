@@ -5,9 +5,8 @@
 	// error_reporting(E_ALL);
 
 	// ini_set("display_errors", 1);
-	//$userID = $_GET['userID'];
-	$userID = $this->userID;
-	$templateCode = $_GET['templateCode'];
+	$userID = $_POST['userID'];
+	$verificationCode = $_POST['verificationCode'];
 
 	// $userID = $_POST['userID'];
 	// $templateCode = $_POST['templateCode'];
@@ -18,8 +17,8 @@
 	//echo "dsad";
 	$test = new selfBook();
 
-	if(isset($userID) && isset($templateCode))
+	if(isset($userID) && isset($verificationCode) )
 	{
-		$test->getChapter($userID, $templateCode);
+		$test->checkVerificationCode($userID, $verificationCode);
 	}
 ?>

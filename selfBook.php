@@ -1,9 +1,13 @@
 <?php
 	
 	//include 'db.php';
+	error_reporting(E_ALL);
+
+	ini_set("display_errors", 1);
 	use \Firebase\JWT\JWT;
 	require_once('authCheck.php');
-
+	// echo "USER ".$tokenUserID;
+	// $tokenOwner = $tokenUserID;
 	class selfBook{
 
 		private $con;
@@ -11,7 +15,7 @@
 		private $bucketName;
 
 		public function __construct()
-		{
+		{	
 			include 'db.php';
 			$this->con = mysqli_connect($host, $user, $pass, $db) or die('Unable to connect');
 		}
@@ -98,7 +102,7 @@
 						if($count == 2)
 						{
 							if(password_verify($userPassword, $row[5])){
-								$falg = 1;
+								$flag = 1;
 							}else{
 								$flag = 0;
 								// echo $userPassword. " ". $row[5];
@@ -163,6 +167,9 @@
 						);
 
 						http_response_code(200);
+
+						$updateToken = "UPDATE USER SET tokenIssuedAt = '$issuedat_claim' WHERE userID = '$userID' ";
+						$result = mysqli_query($this->con, $updateToken);
 
 						$jwt = JWT::encode($payload, $secret_key);
 						echo $jwt;
@@ -565,6 +572,63 @@
 			//echo "success".$verificationCode.$sent. "dd";
 		}
 
+		public function putVerificationCode($userID, $verificationCode, $issuedAt){
+			$hashed_code = password_hash($verificationCode, PASSWORD_DEFAULT);
+			$update = "UPDATE USER SET verificationCode = '$hashed_code', issuedAt = '$issuedAt' WHERE userID = '$userID' ";
+			$res = mysqli_query($this->con, $update);
+			if(mysqli_affected_rows($this->con) > 0){
+				echo "success";
+			}else{
+				echo "fail";
+			}
+
+		}
+
+		public function checkVerificationCode($userID, $verificationCode){
+			$select = "SELECT verificationCode, issuedAt FROM USER WHERE userID = '$userID' ";
+			$res = mysqli_query($this->con, $select);
+			
+			$flag;
+			$late;
+			while( $row = mysqli_fetch_array($res) ){
+
+				date_default_timezone_set("Asia/Seoul");
+				$curTime =  date('Y-m-d H:i', time()); 
+				//echo $curTime;
+
+
+				$issuedTime = new DateTime($row[1]);
+				$cur = new DateTime($curTime); 
+				$interval = $issuedTime->diff($cur);
+
+				//echo $curTime;
+				$verifiedTerm = $interval->format('%i');//30
+				//echo $verifiedTerm;
+
+				if( password_verify($verificationCode, $row[0]) && $verifiedTerm < 3 ){
+					$flag = 1;
+				}else if($verifiedTerm > 3 ){
+					$flag = 0;
+					$late = 1;
+					// echo $userPassword. " ". $row[5];
+				}
+			}
+
+			if($flag == 1){
+				echo "success";
+			}else if($late == 1){
+				echo "late";
+			}else{
+				echo "fail";
+			}
+
+			// $cancelStartDateTime = new DateTime($canceledDate);
+			// $cancelEndDateTime = new DateTime($canceledEndDate); 
+			// $interval = $cancelStartDateTime->diff($cancelEndDateTime);
+			// $availableExtendMinute = $interval->format('%i');//30
+
+		}
+
 		public function resetPW($userID, $userPassword)
 		{
 			$query = "UPDATE USER SET userPassword = '$userPassword' WHERE userID = '$userID' ";
@@ -862,6 +926,21 @@
 		public function getImage(){
 			$this->s3_connect();
 			$this->downloadFileFromS3('images/test_movie_1.png','test_movie_1.png');
+		}
+
+		public function checkOwnToken($userID, $issuedAt){//로그인했을때 클라이언트에게 발급했던 토큰이 맞는지 체크!
+			$select = "SELECT tokenIssuedAt FROM USER WHERE userID = '$userID' ";
+			$res = mysqli_query($this->con, $select);
+
+			while($row = mysqli_fetch_array($res)){
+				if($issuedAt == $row[0]){
+					echo "success";
+					return;
+				}else{
+					http_response_code(401);
+					exit();
+				}
+			}
 		}
 	}
 
