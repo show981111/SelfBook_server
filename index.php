@@ -7,7 +7,7 @@
 	require_once('authCheck.php');
 
 	 
-	if($granted == 1 || $uri[1] === 'login' || $uri[1] === 'templateInfo' || $uri[1] === 'authCode' || $uri[1] === 'resetUser' || $uri[1] === 'checkVerificationCode' ){
+	if($granted == 1 || $uri[1] === 'login' || $uri[1] === 'templateInfo' || $uri[1] === 'authCode' || $uri[1] === 'resetUser' || $uri[1] === 'checkVerificationCode' || $uri[1] === 'getCover'){
 
 		require_once('route.php');
 		$requestMethod = $_SERVER["REQUEST_METHOD"];

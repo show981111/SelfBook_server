@@ -1,9 +1,9 @@
 <?php
 	
 	//include 'db.php';
-	error_reporting(E_ALL);
+	// error_reporting(E_ALL);
 
-	ini_set("display_errors", 1);
+	// ini_set("display_errors", 1);
 	use \Firebase\JWT\JWT;
 	require_once('authCheck.php');
 	// echo "USER ".$tokenUserID;
@@ -572,10 +572,19 @@
 			//echo "success".$verificationCode.$sent. "dd";
 		}
 
-		public function putVerificationCode($userID, $verificationCode, $issuedAt){
+		public function putVerificationCode($userID, $verificationCode, $issuedAt,$table){
 			$hashed_code = password_hash($verificationCode, PASSWORD_DEFAULT);
-			$update = "UPDATE USER SET verificationCode = '$hashed_code', issuedAt = '$issuedAt' WHERE userID = '$userID' ";
-			$res = mysqli_query($this->con, $update);
+			$update;
+			if($table == "USER")
+			{
+				$update = "UPDATE $table SET verificationCode = '$hashed_code', issuedAt = '$issuedAt' WHERE userID = '$userID' ";
+			}else{
+				$update = "INSERT INTO $table (tempEmail, verificationCode, issuedAt) VALUES('$userID','$hashed_code' , '$issuedAt') ON DUPLICATE KEY UPDATE verificationCode='$hashed_code', issuedAt='$issuedAt' ";
+			}
+			if($update != null)
+			{
+				$res = mysqli_query($this->con, $update);
+			}
 			if(mysqli_affected_rows($this->con) > 0){
 				echo "success";
 			}else{
@@ -584,33 +593,44 @@
 
 		}
 
-		public function checkVerificationCode($userID, $verificationCode){
-			$select = "SELECT verificationCode, issuedAt FROM USER WHERE userID = '$userID' ";
+		public function checkVerificationCode($userID, $verificationCode, $table){
+			$select;
+			if($table == "USER"){
+				$select = "SELECT verificationCode, issuedAt FROM $table WHERE userID = '$userID' ";
+			}else{
+				$select = "SELECT verificationCode, issuedAt FROM $table WHERE tempEmail = '$userID' ";
+			}
 			$res = mysqli_query($this->con, $select);
 			
 			$flag;
 			$late;
-			while( $row = mysqli_fetch_array($res) ){
+			if($select != null)
+			{
+				//echo "notnull". $userID. $verificationCode;
+				while( $row = mysqli_fetch_array($res) ){
+					//echo $row[1];
+					date_default_timezone_set("Asia/Seoul");
+					$curTime =  date('Y-m-d H:i', time()); 
+					//echo $curTime;
 
-				date_default_timezone_set("Asia/Seoul");
-				$curTime =  date('Y-m-d H:i', time()); 
-				//echo $curTime;
 
+					$issuedTime = new DateTime($row[1]);
+					$cur = new DateTime($curTime); 
+					$interval = $issuedTime->diff($cur);
 
-				$issuedTime = new DateTime($row[1]);
-				$cur = new DateTime($curTime); 
-				$interval = $issuedTime->diff($cur);
+					//echo $curTime;
+					$verifiedTerm = $interval->format('%i');//30
+					//echo $verifiedTerm;
 
-				//echo $curTime;
-				$verifiedTerm = $interval->format('%i');//30
-				//echo $verifiedTerm;
-
-				if( password_verify($verificationCode, $row[0]) && $verifiedTerm < 3 ){
-					$flag = 1;
-				}else if($verifiedTerm > 3 ){
-					$flag = 0;
-					$late = 1;
-					// echo $userPassword. " ". $row[5];
+					if( password_verify($verificationCode, $row[0]) && $verifiedTerm < 3 ){
+						$flag = 1;
+					}else if( password_verify($verificationCode, $row[0]) && $verifiedTerm > 3 ){
+						$flag = 0;
+						$late = 1;
+						// echo $userPassword. " ". $row[5];
+					}else{
+						$flag = 0;
+					}
 				}
 			}
 
@@ -923,9 +943,9 @@
 			}
 		}
 
-		public function getImage(){
+		public function getImage($cover){
 			$this->s3_connect();
-			$this->downloadFileFromS3('images/test_movie_1.png','test_movie_1.png');
+			$this->downloadFileFromS3('images/'.$cover,$cover);
 		}
 
 		public function checkOwnToken($userID, $issuedAt){//로그인했을때 클라이언트에게 발급했던 토큰이 맞는지 체크!

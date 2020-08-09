@@ -38,6 +38,9 @@
 				case 'draft':
 					require_once('downloadDocx.php');
 					break;
+				case 'getCover':
+					require_once('getImage.php');
+					break;
 				
 				default:
 					header("HTTP/1.1 404 Not Found"); 

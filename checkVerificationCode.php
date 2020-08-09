@@ -7,6 +7,7 @@
 	// ini_set("display_errors", 1);
 	$userID = $_POST['userID'];
 	$verificationCode = $_POST['verificationCode'];
+	$temp = $_POST['temp'];
 
 	// $userID = $_POST['userID'];
 	// $templateCode = $_POST['templateCode'];
@@ -17,8 +18,14 @@
 	//echo "dsad";
 	$test = new selfBook();
 
-	if(isset($userID) && isset($verificationCode) )
+	if(isset($userID) && isset($verificationCode) && isset($temp))
 	{
-		$test->checkVerificationCode($userID, $verificationCode);
+		if($temp == "false")
+		{
+			$test->checkVerificationCode($userID, $verificationCode, "USER");
+		}else{
+			//echo "TEMP";
+			$test->checkVerificationCode($userID, $verificationCode, "TEMPUSER");
+		}
 	}
 ?>

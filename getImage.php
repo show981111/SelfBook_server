@@ -3,21 +3,19 @@
 require_once './vendor/autoload.php';
 require_once('selfBook.php');
 
-$userID = "show981111@gmail.com";
-$templateCode = "1";
 error_reporting(E_ALL);
 
 ini_set("display_errors", 1);
 
-// $userID = $_POST['userID'];
+$coverName = $_GET['coverName'];
 // $templateCode = $_POST['templateCode'];
 
 
 
-if(isset($userID) && isset($templateCode))
+if(isset($coverName))
 {
 	$test = new selfBook();
-	$test->getImage();
+	$test->getImage($coverName);
 }else{
 	echo "fail";
 }

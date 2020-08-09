@@ -33,7 +33,7 @@
 	$granted = 0;
 	
 	if($uri[1] !== 'login' && $uri[1] !== "getTemplateInfo.php" && $uri[1] !== "templateInfo" && $uri[1] !== "registerUser.php"
-		&& $uri[1] !== 'authCode' && $uri[1] !== 'resetUser' && $uri[1] !== 'checkVerificationCode' ){
+		&& $uri[1] !== 'authCode' && $uri[1] !== 'resetUser' && $uri[1] !== 'checkVerificationCode' && $uri[1] !== 'getCover' ){
 
 		$data = json_decode(file_get_contents("php://input"));
 		$authHeader = $_SERVER['HTTP_AUTHORIZATION'];
