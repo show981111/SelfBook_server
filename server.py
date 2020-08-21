@@ -15,132 +15,123 @@ print(server_sock)
 sockets_list = [server_sock]#socket list... multiple clients 
 
 clients = {}#socket is the key, user Data will be value 
-receiver_clients = {}
+receiver_clients = {}#clients 중에서 receiver를 담을 딕셔너리
+sender_receiver_ID = {}#key is client scoekt and the value is receivers' ID list 
+ID_socket_convert = {}#ID is the key and the socket is the value 
 
 print("기다리는 중")
-# client_sock, addr = server_sock.accept()
-
-# print('Connected by', addr)
-
-# 서버에서 "안드로이드에서 서버로 연결요청" 한번 받음
-# data = client_sock.recv(1024)
-# print(data.decode("utf-8"), len(data))
-
-# while(True):
-#     data2 = str(input("보낼 값 : "))
-#     #print(data2.encode())
-#     #client_sock.send(data)
-#     #client_sock.send(data2.to_bytes(4, byteorder='little'))
-#     message_to_send = data2.encode("UTF-8")
-#     client_sock.send(len(message_to_send).to_bytes(2, byteorder='big'))
-#     client_sock.send(message_to_send)
-
-#     # 값하나 보냄(사용자가 입력한 숫자)
-#     #client_sock.send(data2.to_bytes(4, byteorder='little'))
-#     #client_sock.send(struct.pack(data2, len(data)))
-#     # 안드로이드에서 값 받으면 "하나받았습니다 : 숫자" 보낼 것 받음
-#     data = client_sock.recv(1024)
-#     print(data.decode("utf-8"))
-    
-#     if(data2 == "quit"):
-#         break;
-
-# # 연결끊겠다는 표시 보냄
-# #i=99
-# #client_sock.send(i.to_bytes(4, byteorder='little'))
-# client_sock.close()
-# server_sock.close()
-
-
 
 def receive_message(client_socket):
 	try:
-		# message_header = client_socket.recv(HEADER_LENGTH)
-
-		# if not len(message_header):
-		# 	return False
-
-		# message_length = int(message_header.decode('utf-8').strip())
-		#return {"header" : message_header, "data" : client_socket.recv(message_length)}
-		data = client_socket.recv(1024)
+		data = client_socket.recv(1024)#receive data
 		
 		if not len(data):
 			return False
 
 		print("receive Message : " +data.decode('utf-8'))
-		#return data.decode('utf-8')
 		return {"data" : data}
 
 	except:
 		return False
 
+def get_receivers_from_sender(client_socket):#get user data 
+	print("dsadsadasdas")
+	try:
+		print("receive from " + str(client_socket))
+		data = client_socket.recv(1024)#receive data
+		
+		if not len(data):
+			return False
+
+		print("get_receivers_from_sender : " +data.decode('utf-8'))
+
+		input_lists= [x.strip() for x in data.decode('utf-8').split(',')]
+
+		print(input_lists)
+
+		print("bef " + str(client_socket))
+		if input_lists[0] == "sender":
+			print(client_socket)
+			sender_receiver_ID[client_socket] = input_lists#sender라면 자기 보호자 리스트의 아이디를 넣어줌, 
+		else: 
+			ID_socket_convert[input_lists[1]] = client_socket
+
+
+	except:
+		print("FALSE RETURNED")
+		return False
+
 
 
 while True:
-	read_sockets, _, exception_sockets = select.select(sockets_list, [], sockets_list)#read, write ,air on 
+	read_sockets, _, exception_sockets = select.select(sockets_list, [], sockets_list)#read, write ,air on/ 연결한 클라이언트들의 소켓을 셀렉
 
 	for notified_socket in read_sockets:
 		if notified_socket == server_sock: #someone just connected 
-			client_socket, client_address = server_sock.accept()
-			print(client_socket)
-			print(client_address)
+			client_socket, client_address = server_sock.accept()#accept connection
+			print(str(client_socket) + "is connected")
 
-			user = receive_message(client_socket)
-			if user is False:
-				print("USER FALSE")
-				continue
+			#user = receive_message(client_socket)#receive message
+			# if user is False:
+			# 	print("USER FALSE")
+			# 	continue
 
-			print(user['data'].decode('utf-8') + " is connected ")
-			userType = user['data'].decode('utf-8')
-			print(userType)
+			# print(user['data'].decode('utf-8') + " is connected ")
+			# userType = user['data'].decode('utf-8')#유저가 receiver(보호자) 인지 아니면 sender(환자)인지 
+			
+			# print(userType)
 
-			if userType == 'receiver':
-				print('pass receiver')
-				receiver_clients[client_socket] = user
-				print("ACCEPTED AS receiver")
+			# if userType == 'receiver':
+			# 	print('pass receiver')
+			# 	receiver_clients[client_socket] = user#receiver 라면 receiver_clients에 담아준다
+			# 	print("ACCEPTED AS receiver")
+
+			get_receivers_from_sender(client_socket)
 
 			sockets_list.append(client_socket)
 
-			clients[client_socket] = user  # [client_socket : {data : data}] set user data when user connected 
-			#print(f"Accepted new connection fron {client_address[0]}:{client_address[1]} username : {user['data'].decode('utf-8')} ")
+			#clients[client_socket] = user  #clients에 데이터를 담아준다
 
 		else: 
-			message = receive_message(notified_socket)
-			#print("IN ELSE : " + message['data'].decode('utf-8'))
+			message = receive_message(notified_socket)#누군가가 data를 보냈다면 
+
 			if message is False :
-				#print(f"Closed connection from {clients[notified_socket]['data'].decode('utf-8')}")
 				sockets_list.remove(notified_socket)
 				del clients[notified_socket]
 				continue
 
-			user = clients[notified_socket] # same with message above, notified socekt is a socket that sends the data
+			#user = clients[notified_socket] # same with message above, notified socekt is a socket that sends the data
 
 
 			#print(f"received message from {user['data'].decode('utf-8')} : {message['data'].decode('utf-8')}")
 
 			#share this message with everyBody
 			print("@@@@@@@@@@@")
-			print(str(clients))
+			#print(str(clients))
 			print("@@@@@@@@@@@")
-			for client_socket in receiver_clients:#clients
-				#print("for loop")
+
+			# for client_socket in receiver_clients:#clients 중에서 receiver 에게만 메세지를 보냄 
+			# 	#print("for loop")
 				
-				print("------------------------")
-				if client_socket != notified_socket:
-					message_to_send = message['data']
-					# client_socket.sendall( len(message_to_send).to_bytes(2, byteorder='big') )
-					# client_socket.sendall(message_to_send)
-					# data2 = "hello from the other side~()
-					# message_to_send = data2.encode("UTF-8")
-					print(client_socket)
-					print(user['data'])#data that user send when they first connect
-					print("*****Message from" + str(message_to_send) + " AND " + str(len(message_to_send)))
-					#print("len" + str(len(message_to_send)))
-					#client_socket.send(len(message_to_send).to_bytes(2, byteorder='big'))
-					#print("bytes"+ str(len(message_to_send).to_bytes(2, byteorder='big')))
-					client_socket.send(message_to_send)
-					#print("final" + str(message_to_send))
-					#client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
+			# 	print("------------------------")
+			# 	if client_socket != notified_socket:
+			# 		message_to_send = message['data']
+					
+			# 		print(client_socket)
+			# 		print(user['data'])#data that user send when they first connect
+			# 		print("*****Message from" + str(message_to_send) + " AND " + str(len(message_to_send)))
+			# 		client_socket.send(message_to_send)#send message
+
+			for receivers in sender_receiver_ID[notified_socket]:
+				#for receiverID in receivers :
+				print("receiver ID " + receivers)
+				message_to_send = message['data']
+				if receivers in ID_socket_convert:
+					print("send to " + receivers)
+					ID_socket_convert[receivers].send(message_to_send)
+
+					
+			
 				
 
 

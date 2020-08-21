@@ -150,7 +150,7 @@
 						date_default_timezone_set("Asia/Seoul");
 						$issuedat_claim = time(); // issued at
 						$notbefore_claim = $issuedat_claim; //not before in seconds
-						$expire_claim = $issuedat_claim + 8000; // expire time in seconds
+						$expire_claim = $issuedat_claim + 86400; // expire time in seconds
 
 						//$header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
 						$payload = array(
