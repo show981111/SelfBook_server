@@ -2,7 +2,7 @@
     "require": {
         "phpoffice/phpword": "^0.17.0",
         "aws/aws-sdk-php": "^3.145",
-        "firebase/php-jwt": "^5.2"
+        "firebase/php-jwt": "^6.0"
     }
 
 }
